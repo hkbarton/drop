@@ -4,7 +4,7 @@
  |
  |--product description file
  |
- |--.version // version folder
+ |--.task // version folder
      |
      |--version description file
      |
