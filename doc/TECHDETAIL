@@ -11,4 +11,9 @@
      |--deploy steps description file
      |
      |--.src // source file folder 
- 
+
+
+## Deploy document syntax
+## []: required, <>: optional
+# Deploy Files (Copy Files)
+<StepNumber.>Deploy Files: <From> [source path] <To [dest path]> <After Step [StepNumber]>
