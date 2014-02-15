@@ -11,6 +11,8 @@
      |--deploy steps description file
      |
      |--.src // source file folder 
+     |
+     |--.oldbak // backup of replaced file in destination
 
 
 ## Deploy document syntax
