@@ -4,7 +4,7 @@
  |
  |--product description file
  |
- |--.task // task folder, we can think each task will deploy a new version
+ |--.task_[task identify] // task folder, we can think each task will deploy a new version
      |
      |--version description file
      |
