@@ -15,6 +15,12 @@
      |--.oldbak // backup of replaced file in destination
 
 
+A,  B,  C,  D,  E,  F
+
+A0, B0, C0                  /  A,  B,  C      /  A0, B0, C0, D,  E,  F
+    B1, C1, D0              /  B0, C0, D      /  A0, B1, C1, D0, E,  F
+        C2, D1, E0,   Z     /  C1, D0, E      /  A0, B1, C2, D1, E0, F, Z
+
 ## Deploy document syntax
 ## []: required, <>: optional
 # Deploy Files (Copy Files)
