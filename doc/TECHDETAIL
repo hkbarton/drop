@@ -27,3 +27,7 @@ A0, B0, C0                  /  A,  B,  C      /  A0, B0, C0, D,  E,  F
 ## []: required, <>: optional
 # Deploy Files (Copy Files)
 <StepNumber.>Deploy Files: <From> [source path] <To [dest path]> <After Step [StepNumber]>
+e.g:
+1. Deploy Files: /your/source/path # copy /your/source/path to /product/path/your/source/path
+1. Deploy Files: From /your/source/path To /your/dest/path # 
+2. Deploy Files: From /your/source/path To /your/dest/path After Step 1  #

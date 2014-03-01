@@ -1,3 +1,3 @@
 # Drop
 
-A lightweight distribute deploy system writing in NodeJS
+A lightweight, configuration-free distribute deploy system writing in NodeJS
