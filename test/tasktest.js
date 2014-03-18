@@ -1,4 +1,5 @@
-var path = require('path');
+var path = require('path'),
+    fs = require('fs');
 
 var prd = require('../lib/dropproduct'),
     task = require('../lib/droptask');
@@ -10,4 +11,29 @@ function testModelStructer(){
   console.log(task1.getNodePath());
 }
 
-testModelStructer();
+function deployFileTest(){
+  // create source file and folder for test
+  var testFolder = path.join(__dirname,'DeployTest');
+  var testSrcFolder = path.join(__dirname,'DeployTest','src');
+  console.log('build test source folders and files under: ' + testSrcFolder);
+  try{
+    fs.mkdirSync(testFolder);
+    fs.mkdirSync(testSrcFolder);
+    fs.mkdirSync(path.join(testSrcFolder, 'folder1'));
+    fs.mkdirSync(path.join(testSrcFolder, 'folder1', 'subfolder1'));
+    fs.mkdirSync(path.join(testSrcFolder, 'folder2'));
+    fs.writeFileSync(path.join(testSrcFolder, 'folder1', 'fileA.txt'),'fileA');
+    fs.writeFileSync(path.join(testSrcFolder, 'folder1', 'fileB.txt'),'fileB');
+    fs.writeFileSync(path.join(testSrcFolder, 'folder1', 'subfolder1', 'fileA.txt'),'fileA in subfolder');
+    fs.writeFileSync(path.join(testSrcFolder, 'folder2', 'fileC.txt'),'fileC');
+    fs.writeFileSync(path.join(testSrcFolder, 'file1.txt'),'file1');
+    fs.writeFileSync(path.join(testSrcFolder, 'file2.txt'),'file2');
+  }catch(e){
+    console.log(e);
+  }
+  // deploy test
+  console.log('deploy test source file to dest');
+  //var deployStep = require('../lib/droptask').StepDeployFiles;
+}
+
+deployFileTest();
