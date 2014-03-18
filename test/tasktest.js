@@ -14,11 +14,15 @@ function testModelStructer(){
 function deployFileTest(){
   // create source file and folder for test
   var testFolder = path.join(__dirname,'DeployTest');
-  var testSrcFolder = path.join(__dirname,'DeployTest','src');
+  var testSrcFolder = path.join(testFolder,'src');
+  var testDestFolder = path.join(testFolder, 'dest');
+  var testBackupFolder = path.join(testFolder, 'backup');
   console.log('build test source folders and files under: ' + testSrcFolder);
   try{
     fs.mkdirSync(testFolder);
     fs.mkdirSync(testSrcFolder);
+    fs.mkdirSync(testDestFolder);
+    fs.mkdirSync(testBackupFolder);
     fs.mkdirSync(path.join(testSrcFolder, 'folder1'));
     fs.mkdirSync(path.join(testSrcFolder, 'folder1', 'subfolder1'));
     fs.mkdirSync(path.join(testSrcFolder, 'folder2'));
@@ -33,7 +37,9 @@ function deployFileTest(){
   }
   // deploy test
   console.log('deploy test source file to dest');
-  //var deployStep = require('../lib/droptask').StepDeployFiles;
+  var DeployStep = require('../lib/droptask').StepDeployFiles;
+  var deploy = new DeployStep(null, null);
+  deploy.deployFile(testSrcFolder, testDestFolder, testBackupFolder);
 }
 
 deployFileTest();
