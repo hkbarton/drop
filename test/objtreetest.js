@@ -1,5 +1,5 @@
-var task = require('../lib/droptask.js'),
-    prd = require('../lib/dropproduct.js');
+var task = require('../lib/task.js'),
+    prd = require('../lib/product.js');
 
 var testPrd = new prd.Product('product1', '/dropnode');
 var testTask = new task.Task('taskA', testPrd);

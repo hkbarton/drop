@@ -1,8 +1,8 @@
 var path = require('path'),
     fs = require('fs');
 
-var prd = require('../lib/dropproduct'),
-    task = require('../lib/droptask');
+var prd = require('../lib/product'),
+    task = require('../lib/task');
 
 function testModelStructer(){
   var nodeFolder = path.join(__dirname,'../');
