@@ -37,8 +37,8 @@ function deployFileTest(){
   }
   // deploy test
   console.log('deploy test source file to dest');
-  var DeployStep = require('../lib/droptask').StepDeployFiles;
-  var deploy = new DeployStep(null, null);
+  var DeployStep = require('../lib/step').StepDeployFiles;
+  var deploy = new DeployStep();
   deploy.deployFile(testSrcFolder, testDestFolder, testBackupFolder);
 }
 
