@@ -24,14 +24,17 @@ function deployFileTest(){
     fs.mkdirSync(testDestFolder);
     fs.mkdirSync(testBackupFolder);
     fs.mkdirSync(path.join(testSrcFolder, 'folder1'));
+    fs.mkdirSync(path.join(testDestFolder, 'folder1')); // backup test
     fs.mkdirSync(path.join(testSrcFolder, 'folder1', 'subfolder1'));
     fs.mkdirSync(path.join(testSrcFolder, 'folder2'));
     fs.writeFileSync(path.join(testSrcFolder, 'folder1', 'fileA.txt'),'fileA');
+    fs.writeFileSync(path.join(testDestFolder, 'folder1', 'fileA.txt'),'Old fileA in dest folder');
     fs.writeFileSync(path.join(testSrcFolder, 'folder1', 'fileB.txt'),'fileB');
     fs.writeFileSync(path.join(testSrcFolder, 'folder1', 'subfolder1', 'fileA.txt'),'fileA in subfolder');
     fs.writeFileSync(path.join(testSrcFolder, 'folder2', 'fileC.txt'),'fileC');
     fs.writeFileSync(path.join(testSrcFolder, 'file1.txt'),'file1');
     fs.writeFileSync(path.join(testSrcFolder, 'file2.txt'),'file2');
+    fs.writeFileSync(path.join(testDestFolder, 'file2.txt'),'old file2 in dest folder');
   }catch(e){
     console.log(e);
   }
