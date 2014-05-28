@@ -1,1 +1,6 @@
 #!/bin/sh
+BIN_PATH=`dirname $0`/
+LIB_PATH=$BIN_PATH'../lib/'
+EXE_PATH=$LIB_PATH'socket.js'
+
+node $EXE_PATH $@
