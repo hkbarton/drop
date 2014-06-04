@@ -2,5 +2,6 @@
   "port":8080,
   "pulseInterval":60000,
   "pulseTimeout":5000,
-  "pulseMinResponse":4
+  "pulseMinResponse":4,
+  "pulseMaxTest":10
 }
