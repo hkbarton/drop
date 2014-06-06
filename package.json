@@ -1,6 +1,6 @@
 {
-    "name": "Drop",
-    "description":"Drop  - A distribute automatic deploy system",
+    "name": "drop",
+    "description":"drop  - A distribute, configuration-free automatic deploy system",
     "version": "0.0.1",
     "dependencies": {
         "express": "3.1.0",
