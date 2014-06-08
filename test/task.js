@@ -33,7 +33,8 @@ describe('task', function(){
     });
 
     after(function(){
-      rimraf(path.join(__dirname, 'DeployTest'), function(err){if(err) throw err;});
+      // note: can not use async method here, coz mocha will end process after this function call
+      rimraf.sync(testFolder);
     });
 
     it('should copy a folder recusively', function(){
