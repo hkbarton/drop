@@ -1,25 +1,36 @@
 var struct = require('../lib/struct'),
+    assert = require('assert'),
+    rimraf = require('rimraf'),
     path = require('path'),
     fs = require('fs');
 
-function init(){
+describe('struct', function(){
   var nodeDataPath = path.join(__dirname, '../.data');
-  var now = new Date();
   var prd1 = path.join(nodeDataPath, 'prd1');
-  fs.mkdirSync(prd1);
-  fs.mkdirSync(path.join(prd1,now.getTime()+'_t_version1_' + now.getTime()));
-  fs.mkdirSync(path.join(prd1,(now.getTime()-1000)+'_t_version2_' + now.getTime()));
   var prd2 = path.join(nodeDataPath, 'prd2');
-  fs.mkdirSync(prd2);
-  fs.mkdirSync(path.join(prd2,(now.getTime()-3000)+'_t_versiona_' + now.getTime()));
-  fs.mkdirSync(path.join(prd2,(now.getTime()-5000)+'_t_versionb_' + now.getTime()));
-}
+  var now = new Date();
 
-function structTest(){
-  struct.getProductsSign(function(err, data){
-    console.log(data);
+  before(function(){
+    fs.mkdirSync(prd1);
+    fs.mkdirSync(path.join(prd1,now.getTime()+'_t_version1_' + now.getTime()));
+    fs.mkdirSync(path.join(prd1,(now.getTime()-1000)+'_t_version2_' + now.getTime()));
+    fs.mkdirSync(prd2);
+    fs.mkdirSync(path.join(prd2,(now.getTime()-3000)+'_t_versiona_' + now.getTime()));
+    fs.mkdirSync(path.join(prd2,(now.getTime()-5000)+'_t_versionb_' + now.getTime()));
   });
-}
 
-init();
-structTest();
+  after(function(){
+    rimraf.sync(prd1);
+    rimraf.sync(prd2);
+  });
+
+  it('should return the correct products structure and latest version number of each product', 
+  function(done){
+    struct.getProductsSign(function(err, data){
+      assert.equal(data.prd__self>=0, true);
+      assert.equal(data.prd1==now.getTime(), true);
+      assert.equal(data.prd2==now.getTime()-3000, true);
+      done();
+    });
+  });
+});
