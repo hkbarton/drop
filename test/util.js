@@ -1,4 +1,7 @@
 var assert = require('assert'),
+    fs = require('fs'),
+    path = require('path'),
+    rimraf = require('rimraf'),
     util = require('../lib/util');
 
 describe('util', function(){
@@ -16,5 +19,40 @@ describe('util', function(){
     assert.equal((ip===null || ip.indexOf('192')===0 || 
       ip.indexOf('172')===0 || 
       ip.indexOf('10')===0), true);
+  });
+
+  it('should check if a path is absolute or relative', function(){
+    if (process.platform==='win32'){
+      assert.equal(util.isAbsolutePath('C:\\absolutepath'), true);
+      assert.equal(util.isAbsolutePath('.\\test\\test'), true);
+      assert.equal(util.isAbsolutePath('..\\test\\test'), true);
+      assert.equal(util.isAbsolutePath('test\\test'), true);
+    }else{
+      assert.equal(util.isAbsolutePath('/etc/test'), true);
+      assert.equal(util.isAbsolutePath('./test'), false);
+      assert.equal(util.isAbsolutePath('../test'), false);
+      assert.equal(util.isAbsolutePath('test/test'), false);
+    }
+  });
+
+  it('should get the files count of specific path', function(){
+    var testFolder = path.join(__dirname,'tempFolder');
+    fs.mkdirSync(testFolder);
+    var subFolder1 = path.join(testFolder, 'subFolder1');
+    var subFolder2 = path.join(testFolder, 'subFolder2');
+    var subsubFolder = path.join(subFolder2, 'subsubfolder');
+    fs.writeFileSync(path.join(testFolder, 'fileA.txt'),'fileA');
+    fs.writeFileSync(path.join(testFolder, 'fileB.txt'),'fileB');
+    fs.mkdirSync(subFolder1);
+    fs.writeFileSync(path.join(subFolder1, 'fileA.txt'),'fileA');
+    fs.writeFileSync(path.join(subFolder1, 'fileB.txt'),'fileB');
+    fs.mkdirSync(subFolder2);
+    fs.writeFileSync(path.join(subFolder2, 'fileA.txt'),'fileA');
+    fs.mkdirSync(subsubFolder);
+    fs.writeFileSync(path.join(subsubFolder, 'fileA.txt'),'fileA');
+    fs.writeFileSync(path.join(subsubFolder, 'fileB.txt'),'fileB');
+    var filesCount = util.getFilesCount(testFolder);
+    assert.equal(filesCount==10, true);
+    rimraf.sync(testFolder);
   });
 });

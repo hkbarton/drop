@@ -12,7 +12,7 @@ prd_[product identify]
      |
      |--src // source file folder 
      |
-     |--oldbak // backup of replaced file in destination
+     |--bak // backup of replaced file in destination
 
 ## File Deploy and Rollback demo:
 ===========================================
