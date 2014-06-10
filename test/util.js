@@ -52,7 +52,7 @@ describe('util', function(){
     fs.writeFileSync(path.join(subsubFolder, 'fileA.txt'),'fileA');
     fs.writeFileSync(path.join(subsubFolder, 'fileB.txt'),'fileB');
     var filesCount = util.getFilesCount(testFolder);
-    assert.equal(filesCount==10, true);
+    assert.equal(filesCount==7, true);
     rimraf.sync(testFolder);
   });
 });
