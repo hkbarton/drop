@@ -24,9 +24,9 @@ describe('util', function(){
   it('should check if a path is absolute or relative', function(){
     if (process.platform==='win32'){
       assert.equal(util.isAbsolutePath('C:\\absolutepath'), true);
-      assert.equal(util.isAbsolutePath('.\\test\\test'), true);
-      assert.equal(util.isAbsolutePath('..\\test\\test'), true);
-      assert.equal(util.isAbsolutePath('test\\test'), true);
+      assert.equal(util.isAbsolutePath('.\\test\\test'), false);
+      assert.equal(util.isAbsolutePath('..\\test\\test'), false);
+      assert.equal(util.isAbsolutePath('test\\test'), false);
     }else{
       assert.equal(util.isAbsolutePath('/etc/test'), true);
       assert.equal(util.isAbsolutePath('./test'), false);

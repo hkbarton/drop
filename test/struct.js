@@ -27,9 +27,31 @@ describe('struct', function(){
   it('should return the correct products structure and latest version number of each product', 
   function(done){
     struct.getProductsSign(function(err, data){
+      if (err){
+        throw err;
+      }
       assert.equal(data.prd__self>=0, true);
       assert.equal(data.prd1==now.getTime(), true);
       assert.equal(data.prd2==now.getTime()-3000, true);
+      done();
+    });
+  });
+
+  it('should merge products sign from source server to current server', 
+  function(done){
+    struct.getProductsSign(function(err, data){
+      if (err){
+         throw err;
+      }
+      var srcProductSign = {
+        prd1:now.getTime()+2000,
+        prd2:now.getTime()-4000,
+      };
+      var mergeResult = struct.mergeProductSign(data, srcProductSign);
+      assert.equal(mergeResult.prd2===undefined, true);
+      assert.equal(mergeResult.prd__self===undefined, true);
+      assert.equal(mergeResult.prd1.selfstamp===now.getTime(), true);
+      assert.equal(mergeResult.prd1.srcstamp===now.getTime()+2000, true);
       done();
     });
   });
