@@ -12,11 +12,11 @@ describe('struct', function(){
 
   before(function(){
     fs.mkdirSync(prd1);
-    fs.mkdirSync(path.join(prd1,now.getTime()+'_t_version1_' + now.getTime()));
-    fs.mkdirSync(path.join(prd1,(now.getTime()-1000)+'_t_version2_' + now.getTime()));
+    fs.mkdirSync(path.join(prd1,now.getTime()+'_version1_' + now.getTime()));
+    fs.mkdirSync(path.join(prd1,(now.getTime()-1000)+'_version2_' + now.getTime()));
     fs.mkdirSync(prd2);
-    fs.mkdirSync(path.join(prd2,(now.getTime()-3000)+'_t_versiona_' + now.getTime()));
-    fs.mkdirSync(path.join(prd2,(now.getTime()-5000)+'_t_versionb_' + now.getTime()));
+    fs.mkdirSync(path.join(prd2,(now.getTime()-3000)+'_versiona_' + now.getTime()));
+    fs.mkdirSync(path.join(prd2,(now.getTime()-5000)+'_versionb_' + now.getTime()));
   });
 
   after(function(){
@@ -30,7 +30,7 @@ describe('struct', function(){
       if (err){
         throw err;
       }
-      assert.equal(data.prd__self>=0, true);
+      assert.equal(data.__self>=0, true);
       assert.equal(data.prd1==now.getTime(), true);
       assert.equal(data.prd2==now.getTime()-3000, true);
       done();
@@ -49,7 +49,7 @@ describe('struct', function(){
       };
       var mergeResult = struct.mergeProductSign(data, srcProductSign);
       assert.equal(mergeResult.prd2===undefined, true);
-      assert.equal(mergeResult.prd__self===undefined, true);
+      assert.equal(mergeResult.__self===undefined, true);
       assert.equal(mergeResult.prd1.selfstamp===now.getTime(), true);
       assert.equal(mergeResult.prd1.srcstamp===now.getTime()+2000, true);
       done();
