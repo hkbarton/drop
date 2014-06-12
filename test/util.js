@@ -5,6 +5,20 @@ var assert = require('assert'),
     util = require('../lib/util');
 
 describe('util', function(){
+  it('should return a hash value of string', function(){
+    var a = {
+      filed1: 'value1'
+    };
+    var b = {
+      filed1: 'value1'
+    };
+    var ahash = JSON.stringify(a).hash();
+    var bhash = JSON.stringify(b).hash();
+    assert.equal(ahash.length > 0, true);
+    assert.equal(bhash.length > 0, true);
+    assert.equal(ahash, bhash);
+  });
+
   it('should detect if a IP is or is not a private IP', function(){
     assert.equal(util.isPrivateIP('10.0.0.1'), true);
     assert.equal(util.isPrivateIP('11.0.0.1'), false);
