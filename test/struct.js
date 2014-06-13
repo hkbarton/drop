@@ -12,8 +12,10 @@ describe('struct', function(){
 
   before(function(){
     fs.mkdirSync(prd1);
-    fs.mkdirSync(path.join(prd1,now.getTime()+'_version1_' + now.getTime()));
-    fs.mkdirSync(path.join(prd1,(now.getTime()-1000)+'_version2_' + now.getTime()));
+    fs.mkdirSync(path.join(prd1,now.getTime()+'_version4_' + now.getTime()));
+    fs.mkdirSync(path.join(prd1,(now.getTime()-1000)+'_version3_' + now.getTime()));
+    fs.mkdirSync(path.join(prd1,(now.getTime()-2000)+'_version2_' + now.getTime()));
+    fs.mkdirSync(path.join(prd1,(now.getTime()-3000)+'_version1_' + now.getTime()));
     fs.mkdirSync(prd2);
     fs.mkdirSync(path.join(prd2,(now.getTime()-3000)+'_versiona_' + now.getTime()));
     fs.mkdirSync(path.join(prd2,(now.getTime()-5000)+'_versionb_' + now.getTime()));
@@ -54,5 +56,14 @@ describe('struct', function(){
       assert.equal(mergeResult.prd1.srcstamp===now.getTime()+2000, true);
       done();
     });
+  });
+
+  it('shoud return correct product versions range', function(){
+    var range = struct
+      .getProductVersionsRange('prd1', now.getTime()-2000, now.getTime());
+    assert.equal(range['prd1_'+(now.getTime()-1000)].path
+      .indexOf('version3') > -1, true);
+    assert.equal(range['prd1_'+now.getTime()].path
+      .indexOf('version4') > -1, true);
   });
 });
