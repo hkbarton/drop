@@ -6,7 +6,8 @@
         "express": "3.1.0",
         "client-http": ">=0.0.7",
         "mocha": ">=1.20.1",
-        "rimraf": ">=2.2.8"
+        "rimraf": ">=2.2.8",
+        "adm-zip": "0.4.4"
     },
     "engines": {
         "node": "0.10.x",
