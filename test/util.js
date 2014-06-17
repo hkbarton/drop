@@ -69,4 +69,20 @@ describe('util', function(){
     assert.equal(filesCount==7, true);
     rimraf.sync(testFolder);
   });
+
+  it('should pack files into a gziped tarball, and unpack them', function(done){
+    var testFolder = path.join(__dirname, 'packtest');
+    var destFile = path.join(__dirname, 'packtest.tar');
+    fs.mkdirSync(testFolder);
+    var testSubFolder = path.join(testFolder, 'subfolder');
+    fs.mkdirSync(testSubFolder);
+    fs.writeFileSync(path.join(testFolder, 'fileA.txt'), 'fileA');
+
+    util.packFiles(path.join(testFolder, 'fileA.txt'), destFile, function(err){
+      if (err){
+        throw err;
+      }
+      done();
+    });
+  });
 });
