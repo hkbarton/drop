@@ -70,19 +70,63 @@ describe('util', function(){
     rimraf.sync(testFolder);
   });
 
-  it('should pack files into a gziped tarball, and unpack them', function(done){
+  it('should pack files into a gziped tarball, and unpack them', 
+  function(done){
+    //this.timeout(0);
+    //// pack and unpack large file test
+    //var testFolder = path.join(__dirname, 'test');
+    //var destFile = path.join(__dirname, 'test.tar.gz');
+    //var testUnpackFolder = path.join(__dirname, 'unpack');
+    //util.packFiles(testFolder, destFile, function(err){
+      //if (err) throw err;
+      //util.unpackFiles(destFile, testUnpackFolder, function(err){
+        //if (err) throw err;
+        //done();
+      //});
+      //console.log('decompress begin...');
+    //});
+    //console.log('compress begin...');
+    //return;
     var testFolder = path.join(__dirname, 'packtest');
-    var destFile = path.join(__dirname, 'packtest.tar');
+    var destFile = path.join(__dirname, 'packtest.tar.gz');
     fs.mkdirSync(testFolder);
     var testSubFolder = path.join(testFolder, 'subfolder');
     fs.mkdirSync(testSubFolder);
     fs.writeFileSync(path.join(testFolder, 'fileA.txt'), 'fileA');
-
-    util.packFiles(path.join(testFolder, 'fileA.txt'), destFile, function(err){
+    fs.writeFileSync(path.join(testSubFolder, 'file_sub.txt'), 
+      'file in subfolder');
+    var testUnpackFolder = path.join(__dirname, 'unpack');
+    fs.mkdirSync(testUnpackFolder);
+    var deleteTestFiles = function(){
+      rimraf.sync(testFolder);
+      rimraf.sync(testUnpackFolder);
+      rimraf.sync(destFile);
+    };
+    util.packFiles(testFolder, destFile, function(err){
       if (err){
+        deleteTestFiles();
         throw err;
       }
-      done();
+      util.unpackFiles(destFile, testUnpackFolder, function(err){
+        if (err){
+          deleteTestFiles();
+          throw err;
+        }
+        var srcFileA = fs.readFileSync(
+          path.join(testFolder, 'fileA.txt'),{encoding:'utf8'});
+        var destFileA = fs.readFileSync(
+          path.join(testUnpackFolder, 'packtest', 'fileA.txt'), 
+          {encoding:'utf8'});
+        assert.equal(srcFileA, destFileA);
+        var srcSubFile = fs.readFileSync(
+          path.join(testSubFolder, 'file_sub.txt'),{encoding:'utf8'});
+        var destSubFile = fs.readFileSync(
+          path.join(testUnpackFolder,'packtest','subfolder','file_sub.txt'),
+          {encoding:'utf8'});
+        assert.equal(srcSubFile, destSubFile);
+        deleteTestFiles();
+        done();
+      });
     });
   });
 });
