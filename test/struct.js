@@ -5,9 +5,9 @@ var struct = require('../lib/struct'),
     fs = require('fs');
 
 describe('struct', function(){
-  var nodeDataPath = path.join(__dirname, '../.data');
-  var prd1 = path.join(nodeDataPath, 'prd1');
-  var prd2 = path.join(nodeDataPath, 'prd2');
+  var fileDir = struct.fileDir;
+  var prd1 = path.join(fileDir, 'prd1');
+  var prd2 = path.join(fileDir, 'prd2');
   var now = new Date();
 
   before(function(){

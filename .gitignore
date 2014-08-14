@@ -12,6 +12,7 @@ pids
 logs
 .data
 .temp
+.file
 
 npm-debug.log
 node_modules

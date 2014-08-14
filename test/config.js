@@ -37,6 +37,10 @@ describe('config', function(){
     args.push('--pulse-timeout');
     // give invalidate key, should be ignore this key
     args.push('--hello'); args.push('world');
+    // give invalidate value which not match in regex rule, keep default
+    args.push('--file-dir'); args.push('$%ds');
+    // validate value which match the regex check 
+    args.push('--temp-dir'); args.push('./temp/temp1');
     config.loadByArgs(args);
     assert(config.port===1234);
     assert(config.logRotate==='1m');
@@ -44,6 +48,8 @@ describe('config', function(){
     assert(config.logLevel==='info'); // default
     assert(config.pulseTimeout===5000); // default
     assert(config.hello===undefined);
+    assert(config.fileDir==='.file');
+    assert(config.tempDir==='./temp/temp1');
   });
 
   it('should setup configure by configuration file', function(){
