@@ -17,6 +17,9 @@ describe('config', function(){
       '# this is a comment with a empty comment line\n#\n', {encoding:'utf8'});
     fs.appendFileSync(configPath, 
       'pulse-max-test 100 # some comment after value\n', {encoding:'utf8'});
+    fs.appendFileSync(configPath, '\n', {encoding:'utf8'});
+    fs.appendFileSync(configPath, 
+      'neighbor ["172.16.0.1","172.16.0.2","abc.12.d.c"]\n',{encoding:'utf8'});
   });
 
   after(function(){
@@ -41,21 +44,30 @@ describe('config', function(){
     args.push('--file-dir'); args.push('$%ds');
     // validate value which match the regex check 
     args.push('--temp-dir'); args.push('./temp/temp1');
+    // only validate item in array setting get setted
+    args.push('--neighbor');
+    args.push("['192.168.0.1','1234.4.5.6','10.0.0.1']");
     config.loadByArgs(args);
     assert(config.port===1234);
     assert(config.logRotate==='1m');
-    assert(config.pulseInterval===3000); // default
+    assert(config.pulseInterval===60000); // default
     assert(config.logLevel==='info'); // default
     assert(config.pulseTimeout===5000); // default
     assert(config.hello===undefined);
     assert(config.fileDir==='.file');
     assert(config.tempDir==='./temp/temp1');
+    assert(config.neighbor.length===2);
+    assert(config.neighbor.indexOf('192.168.0.1')>-1);
+    assert(config.neighbor.indexOf('10.0.0.1')>-1);
   });
 
   it('should setup configure by configuration file', function(){
     config.loadByConfigFile(configPath);
     assert(config.port===4567);
     assert(config.pulseMaxTest===100);
+    assert(config.neighbor.length===2);
+    assert(config.neighbor.indexOf('172.16.0.1')>-1);
+    assert(config.neighbor.indexOf('172.16.0.2')>-1);
   });
 
   it('should combine args setup and configuration file setup', function(){
