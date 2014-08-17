@@ -2,7 +2,7 @@ var path = require('path'),
     fs = require('fs'),
     assert = require('assert'),
     rimraf = require('rimraf'),
-    step = require('../lib/model/step');
+    step = require('../src/model/step');
 
 describe('task', function(){
   describe('developy file task', function(){

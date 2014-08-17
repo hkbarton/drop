@@ -1,4 +1,4 @@
-var struct = require('../lib/struct'),
+var struct = require('../src/struct'),
     assert = require('assert'),
     rimraf = require('rimraf'),
     path = require('path'),
