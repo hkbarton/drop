@@ -5,8 +5,12 @@ var assert = require('assert'),
 
 describe('config', function(){
   var configPath = path.join(__dirname, 'BDDTest.conf');
+  var oriWarnStdout = console.warn;
 
   before(function(){
+    // igonre stdout from config.js in test module
+    console.warn = function(){};
+    // write test conf file
     fs.writeFileSync(configPath, 
       '# this is a comment\n', {encoding:'utf8'});
     fs.appendFileSync(configPath, 
@@ -23,6 +27,9 @@ describe('config', function(){
   });
 
   after(function(){
+    // restore normal console.warn
+    console.warn = oriWarnStdout;
+    // delete test conf file
     fs.unlink(configPath);
   });
 
