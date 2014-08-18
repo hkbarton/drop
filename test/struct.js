@@ -1,8 +1,8 @@
-var struct = require('../src/struct'),
-    assert = require('assert'),
+var assert = require('assert'),
     rimraf = require('rimraf'),
     path = require('path'),
-    fs = require('fs');
+    fs = require('fs'),
+    struct = require('../src/lib/struct.js');
 
 describe('struct', function(){
   var fileDir = struct.fileDir;

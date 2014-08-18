@@ -2,7 +2,7 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     rimraf = require('rimraf'),
-    util = require('../src/util');
+    util = require('../src/lib/util');
 
 describe('util', function(){
   it('should return a hash value of string', function(){

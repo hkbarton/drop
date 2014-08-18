@@ -1,7 +1,7 @@
 var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
-    config = require('../src/config.js');
+    config = require('../src/lib/config.js');
 
 describe('config', function(){
   var configPath = path.join(__dirname, 'BDDTest.conf');

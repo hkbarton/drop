@@ -13,7 +13,7 @@ module.exports = function(grunt){
       },
       release:{
         files:{
-          'lib/config.min.js': ['src/config.js']
+          'release/lib/config.min.js': ['src/lib/config.js']
         }
       }
     }
