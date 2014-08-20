@@ -12,7 +12,7 @@ process.on('message', function(m){
 });
 
 // retrieve neighbor information from persistence file
-pulse.restoreNeighbor();
+pulse.neighborTable.restore();
 // execute
 pulse.startPulse();
 setInterval(pulse.startPulse, config.pulseInterval);

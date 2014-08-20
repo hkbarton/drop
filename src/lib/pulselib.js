@@ -2,7 +2,8 @@ var http = require('client-http'),
     util = require('./util'),
     cst = require('./const'),
     struct = require('./struct'),
-    config = require('./config.js');
+    config = require('./config.js'),
+    log = require('./log.js');
 
 var _messageType = {
   updateManager:0
@@ -10,7 +11,6 @@ var _messageType = {
 
 var upScanIP, downScanIP;
 var pulseScanCount = 0;
-var neighborTable = [];
 var selfProductSign;
 //  Pulse Compare Result Data Structure
 //  {
@@ -22,13 +22,57 @@ var selfProductSign;
 //  }
 var pulseResult = {};
 
+var neighborTable = {
+  scanedData:[],
+  save: function(){
+    fs.writeFile(struct.neighborTableFile, JSON.stringify(this.scanedData),
+      {encoding:'utf8'});
+  },
+  restore: function(){
+    try{
+      var resultStr = fs.readFileSync(struct.neighborTableFile, 
+        {encoding:'utf8'});
+      scanedData = JSON.parse(resultStr);
+      if (!(scanedData instanceof Array)){
+        log.error('Persistenced neighbor info has wrong format');
+        scanedData = [];
+      }
+    }catch(e){
+      log.error(e, 'Failed to restore neighbor info from persistence.');
+      scanedData = [];
+    }
+  },
+  add: function(ip){ // only add to scaned data, if value not in configuration
+    if (config.neighbor.indexOf(ip) < 0 && scanedData.indexOf(ip) < 0){
+      scanedData.push(ip);
+    }
+  },
+  remove: function(ip){ // only remove from scaned data
+    var idx = scanedData.indexOf(ip);
+    if (idx > -1){
+      scanedData.splice(idx,1); 
+    }
+  },
+  get: function(){
+    var result = scanedData.slice();
+    if (config.neighbor.length > 0){
+      for (var i=0;i<config.neighbor.length;i++){
+        if (result.indexOf(config.neighbor[i]) < 0){
+          result.push(config.neighbor[i]);
+        }
+      }
+    }
+    return result;
+  }
+};
+
 http.setTimeout(config.pulseTimeout);
 
 function pulseDetect(ip, cb){
   http.get('http://' + ip + ':' + config.port + cst.pulseUrl, 
   function(data, err){
     if (err){
-      neighborTable.splice(neighborTable.indexOf(ip),1); // remove broke neighbor
+      neighborTable.remove(ip); // remove broke neighbor
     }else{
       try{
         data = JSON.parse(data);
@@ -37,12 +81,10 @@ function pulseDetect(ip, cb){
       }
       // save or remove this neighbor
       if (!data.sign || data.sign!=cst.dropSignature){ // not drop node return
-        neighborTable.splice(neighborTable.indexOf(ip),1); // remove broke neighbor
+        neighborTable.remove(ip); // remove broke neighbor
         return;
       }
-      if (neighborTable.indexOf(ip)<0){
-        neighborTable.push(ip);      
-      }
+      neighborTable.add(ip);
       // update manager address if need
       if (!cst.manager && data.manager){
         cst.manager = data.manager;
@@ -83,21 +125,6 @@ function scanNeighborPulse(asyncTaskGroup){
   asyncTaskGroup.executeAll();
 }
 
-function saveNeighbor(){
-  fs.writeFile(struct.neighborTableFile, JSON.stringify(neighborTable),
-    {encoding:'utf8'});
-}
-
-function restoreNeighbor(){
-  try{
-    var resultStr = fs.readFileSync(struct.neighborTable, {encoding:'utf8'});
-    neighborTable = JSON.parse(resultStr);
-  }catch(e){
-    log.error(e, 'Failed to restore neighbor info from persistence.');
-    neighborTable = [];
-  }
-}
-
 function getSelfIP(){
   var result = null;
   var ips = util.getInternalIPv4s();
@@ -110,7 +137,7 @@ function getSelfIP(){
       for (i=0;i<ips.length;i++){
         ipParts = ips[i].split('.');
         found = true;
-        for (var j=0;i<4;j++){
+        for (var j=0;j<4;j++){
           if (ipRangeParts[j]!='*' && ipRangeParts[j]!=ipParts[j]){
             found = false;
             break;
@@ -134,12 +161,12 @@ function getSelfIP(){
 }
 
 function finishOnePulseLoopCallback(){
-  if (neighborTable.length < config.pulseMinResponse && 
+  if (neighborTable.get().length < config.pulseMinResponse && 
       pulseScanCount < config.pulseMaxTest){
     // continue scan
     scanNeighborPulse(this);
   }else{
-    saveNeighbor();
+    neighborTable.save();
     // send a work to parent process
     // parent process will resend this work to worker process
     if (Object.keys(pulseResult).length > 0){
@@ -169,9 +196,10 @@ function startPulse(){
     pulseResult = {};
     upScanIP = downScanIP = getSelfIP();
     pulseScanCount = 0;
-    if (neighborTable.length>0){
-      for(var index in neighborTable){
-        pulseTaskGroup.push(pulseDetect, neighborTable[index]);
+    var neighbors = neighborTable.get();
+    if (neighbors.length > 0){
+      for (var i=0;i<neighbors.length;i++){
+        pulseTaskGroup.push(pulseDetect, neighbors[i]);
       }
       pulseTaskGroup.executeAll();
     }else{
@@ -181,7 +209,6 @@ function startPulse(){
 }
 
 exports.messageType = _messageType;
-exports.saveNeighbor = saveNeighbor;
-exports.restoreNeighbor = restoreNeighbor;
+exports.neighborTable = neighborTable;
 exports.getSelfIP = getSelfIP;
 exports.startPulse = startPulse;
