@@ -8,7 +8,7 @@ var _childProcess = {
 
 function startPulseProcess(){
   _childProcess.pulseProcess = require('child_process').fork(
-    path.join(__dirname, 'pulse.js'), [JSON.stringify(config)], {
+    path.join(__dirname, 'pulse.js'), process.argv, {
     cwd:process.cwd()
   });
   _childProcess.pulseProcess.on('exit', pulseExitCallback);

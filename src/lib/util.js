@@ -34,20 +34,20 @@ function isPrivateIP(ip){
   return false;
 }
 
-function getPrimaryIP(){
+function getInternalIPv4s(){
+  var result = [];
   var os = require('os');
   var networks = os.networkInterfaces();
   for (var index in networks){
     var network = networks[index];
     for (var i=0;i<network.length;i++){
       var info = network[i];
-      if (info.family=='IPv4' && !info.internal && 
-        isPrivateIP(info.address)){
-        return info.address;
+      if (info.family=='IPv4' && !info.internal){
+        result.push(info.address);
       }
     }
   }
-  return null;
+  return result;
 }
 
 function splitIP(ip){
@@ -181,12 +181,74 @@ function unpackFiles(gzPath, destPath, callback){
   });
 }
 
+// Async task group used for execute a set of async function and run a unified
+// callback when all of these function are finish to execute
+function AsyncTaskGroup(allDoneCallback){
+  if (typeof allDoneCallback=='function'){
+    this.allDoneCallback = allDoneCallback;
+  }
+  this.isBusy = false;
+  this.tasks = [];
+  this.finishTaskCnt = 0;
+}
+
+AsyncTaskGroup.prototype.push = function(fun){
+  if (typeof fun!='function'){
+    throw new Error('AsyncTaskGroup only accept function as task.');
+  }
+  if (this.isBusy){
+    return;
+  }
+  var task = {};
+  task.fun = fun;
+  task.params = [];
+  var params = Object.keys(arguments);
+  if (params.length>1){
+    for (var i=1;i<params.length;i++){
+      task.params.push(arguments[params[i]]);
+    }
+  }
+  // last parameter is a callback function called when one task done
+  // so each function passed in this method should have a callback 
+  // function parameter as it's last parameter
+  task.params.push(function(){
+    this.finishTaskCnt++;
+    if (this.finishTaskCnt==this.tasks.length){
+      // clear
+      this.tasks = [];  
+      this.finishTaskCnt = 0;
+      this.isBusy = false;
+      // execute allDoneCallback
+      if (typeof this.allDoneCallback=='function'){
+        this.allDoneCallback();
+      }
+    }
+  }.bind(this));
+  this.tasks.push(task);
+};
+
+AsyncTaskGroup.prototype.executeAll = function(){
+  if (this.isBusy){
+    return;
+  }
+  if (this.tasks.length>0){
+    this.isBusy = true;
+    var len = this.tasks.length;
+    var task;
+    for (var i=0;i<len;i++){
+      task = this.tasks[i];
+      task.fun.apply(this, task.params);
+    }
+  }
+};
+
 exports.signResponse = signResponse;
 exports.isPrivateIP = isPrivateIP;
-exports.getPrimaryIP = getPrimaryIP;
+exports.getInternalIPv4s = getInternalIPv4s;
 exports.increaseIP = increaseIP;
 exports.decreaseIP = decreaseIP;
 exports.isAbsolutePath = isAbsolutePath;
 exports.getFilesCount = getFilesCount;
 exports.packFiles = packFiles;
 exports.unpackFiles = unpackFiles;
+exports.AsyncTaskGroup = AsyncTaskGroup;

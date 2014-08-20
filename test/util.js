@@ -2,6 +2,7 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     rimraf = require('rimraf'),
+    http = require('client-http'),
     util = require('../src/lib/util');
 
 describe('util', function(){
@@ -28,11 +29,9 @@ describe('util', function(){
     assert.equal(util.isPrivateIP('192.169.0.1'), false);
   });
 
-  it('should get primary internal IP', function(){
-    var ip = util.getPrimaryIP();
-    assert.equal((ip===null || ip.indexOf('192')===0 || 
-      ip.indexOf('172')===0 || 
-      ip.indexOf('10')===0), true);
+  it('should get internal IPv4 IPs', function(){
+    var ips = util.getInternalIPv4s();
+    assert(ips.length > 0);
   });
 
   it('should check if a path is absolute or relative', function(){
@@ -128,5 +127,43 @@ describe('util', function(){
         done();
       });
     });
+  });
+
+  it('should run multiple async function in a task group', function(done){
+    this.timeout(60000);
+    var result = {
+      value:0
+    };
+    var taskGroup = new util.AsyncTaskGroup(function(){
+      assert(result.value==5);
+      done();
+    });
+    taskGroup.push(function(total, num1, cb1){
+      setTimeout(function(){
+        total.value += num1;
+        cb1();
+      }, 500);
+      //http.get('http://www.google.com/', function(data){
+        //total.value += num1;
+        //cb1();
+      //});
+    }, result, 2);
+    taskGroup.push(function(total, num2, cb2){
+      setTimeout(function(){
+        total.value += num2;
+        cb2();
+      }, 500);
+      //http.get('http://www.facebook.com/', function(data){
+        //total.value += num2;
+        //cb2();
+      //});
+    }, result, 3);
+    taskGroup.executeAll();
+    assert(taskGroup.isBusy);
+    // will not be execute
+    taskGroup.push(function(total, num3, cb3){
+      total.value += num3;
+      cb3();
+    }, result, 10);
   });
 });
