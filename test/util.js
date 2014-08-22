@@ -142,7 +142,7 @@ describe('util', function(){
       setTimeout(function(){
         total.value += num1;
         cb1();
-      }, 500);
+      }, 200);
       //http.get('http://www.google.com/', function(data){
         //total.value += num1;
         //cb1();
@@ -152,7 +152,7 @@ describe('util', function(){
       setTimeout(function(){
         total.value += num2;
         cb2();
-      }, 500);
+      }, 200);
       //http.get('http://www.facebook.com/', function(data){
         //total.value += num2;
         //cb2();
