@@ -1,4 +1,5 @@
 var http = require('client-http'),
+    fs = require('fs'),
     util = require('./util'),
     cst = require('./const'),
     struct = require('./struct'),
@@ -24,37 +25,37 @@ var pulseResult = {};
 
 var neighborTable = {
   scanedData:[],
-  save: function(){
+  save: function(cb){
     fs.writeFile(struct.neighborTableFile, JSON.stringify(this.scanedData),
-      {encoding:'utf8'});
+      {encoding:'utf8'}, cb);
   },
   restore: function(){
     try{
       var resultStr = fs.readFileSync(struct.neighborTableFile, 
         {encoding:'utf8'});
-      scanedData = JSON.parse(resultStr);
-      if (!(scanedData instanceof Array)){
+      this.scanedData = JSON.parse(resultStr);
+      if (!(this.scanedData instanceof Array)){
         log.error('Persistenced neighbor info has wrong format');
-        scanedData = [];
+        this.scanedData = [];
       }
     }catch(e){
       log.error(e, 'Failed to restore neighbor info from persistence.');
-      scanedData = [];
+      this.scanedData = [];
     }
   },
   add: function(ip){ // only add to scaned data, if value not in configuration
-    if (config.neighbor.indexOf(ip) < 0 && scanedData.indexOf(ip) < 0){
-      scanedData.push(ip);
+    if (config.neighbor.indexOf(ip) < 0 && this.scanedData.indexOf(ip) < 0){
+      this.scanedData.push(ip);
     }
   },
   remove: function(ip){ // only remove from scaned data
-    var idx = scanedData.indexOf(ip);
+    var idx = this.scanedData.indexOf(ip);
     if (idx > -1){
-      scanedData.splice(idx,1); 
+      this.scanedData.splice(idx,1); 
     }
   },
   get: function(){
-    var result = scanedData.slice();
+    var result = this.scanedData.slice();
     if (config.neighbor.length > 0){
       for (var i=0;i<config.neighbor.length;i++){
         if (result.indexOf(config.neighbor[i]) < 0){

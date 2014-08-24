@@ -15,13 +15,13 @@ function init(){
   if (typeof config.logCount==='number' && config.logCount>0){
     defaultLog.count = config.logCount;
   }
-  logStream.add(defaultLog);
+  logStream.push(defaultLog);
   if (typeof config.stdoutLevel==='string'){
     var stdoutLog = {
       level:config.stdoutLevel,
       stream: process.stdout
     };
-    logStream.add(stdoutLog);
+    logStream.push(stdoutLog);
   }
   return logStream;
 }

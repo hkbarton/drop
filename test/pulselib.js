@@ -1,5 +1,7 @@
 var assert = require('assert'),
+    fs = require('fs'),
     pulse = require('../src/lib/pulselib.js'),
+    struct = require('../src/lib/struct.js'),
     util = require('../src/lib/util.js'),
     config = require('../src/lib/config.js');
 
@@ -25,5 +27,34 @@ describe('pulselib', function(){
         config.priNeighborIprange = oriIPRangeValue;
       }
     }
+  });
+
+  it('should manage scanned neighbors as well as configured neighbors well',
+  function(done){
+    fs.writeFileSync(struct.neighborTableFile, 
+      '["192.168.0.1","192.168.0.2"]', {encoding:'utf8'});
+    var oriConfigNeighbor = config.neighbor;
+    config.loadByArgs(['--neighbor','["192.168.0.2","192.168.0.3"]']);
+    pulse.neighborTable.restore();
+    assert(pulse.neighborTable.get().length==3);
+    pulse.neighborTable.remove('192.168.0.3'); // will not remove
+    assert(pulse.neighborTable.get().length==3);
+    pulse.neighborTable.remove('192.168.0.1'); // will remove
+    assert(pulse.neighborTable.get().length==2);
+    assert(pulse.neighborTable.get().indexOf('192.168.0.1')==-1);
+    pulse.neighborTable.add('192.168.0.5');
+    assert(pulse.neighborTable.get().length==3);
+    assert(config.neighbor.length==2);
+    pulse.neighborTable.save(function(){
+      var savedNeighborStr = fs.readFileSync(struct.neighborTableFile,{
+        encoding:'utf8'});
+      var savedNeighbor = JSON.parse(savedNeighborStr);
+      assert(savedNeighbor.length==2);
+      assert(savedNeighbor.indexOf('192.168.0.2')>-1);
+      assert(savedNeighbor.indexOf('192.168.0.5')>-1);
+      config.neighbor = oriConfigNeighbor;
+      fs.unlink(struct.neighborTableFile);
+      done();
+    });
   });
 });
