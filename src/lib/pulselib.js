@@ -83,27 +83,27 @@ function pulseDetect(ip, cb){
       // save or remove this neighbor
       if (!data.sign || data.sign!=cst.dropSignature){ // not drop node return
         neighborTable.remove(ip); // remove broke neighbor
-        return;
-      }
-      neighborTable.add(ip);
-      // update manager address if need
-      if (!cst.manager && data.manager){
-        cst.manager = data.manager;
-      }
-      // deal with return product structure
-      var mergeResult = struct.mergeProductSign(selfProductSign, data.data);
-      if (mergeResult && mergeResult.length>0){
-        for (var prdName in mergeResult){
-          var pulsePrd = pulseResult[prdName];
-          if (pulsePrd){
-            if (pulsePrd.srcstamp < mergeResult[prdName].srcstamp){
-              pulsePrd.srcstamp = mergeResult[prdName].srcstamp;
+      }else{
+        neighborTable.add(ip);
+        // update manager address if need
+        if (!cst.manager && data.manager){
+          cst.manager = data.manager;
+        }
+        // deal with return product structure
+        var mergeResult = struct.mergeProductSign(selfProductSign, data.data);
+        if (mergeResult && mergeResult.length>0){
+          for (var prdName in mergeResult){
+            var pulsePrd = pulseResult[prdName];
+            if (pulsePrd){
+              if (pulsePrd.srcstamp < mergeResult[prdName].srcstamp){
+                pulsePrd.srcstamp = mergeResult[prdName].srcstamp;
+                pulsePrd.src = ip;
+              }
+            }else{
+              pulsePrd = mergeResult[prdName];
               pulsePrd.src = ip;
+              pulseResult[prdName] = pulsePrd;
             }
-          }else{
-            pulsePrd = mergeResult[prdName];
-            pulsePrd.src = ip;
-            pulseResult[prdName] = pulsePrd;
           }
         }
       }
@@ -211,5 +211,10 @@ function startPulse(){
 
 exports.messageType = _messageType;
 exports.neighborTable = neighborTable;
-exports.getSelfIP = getSelfIP;
 exports.startPulse = startPulse;
+//{ DEV
+exports.getSelfIP = getSelfIP;
+exports.pulseResult = pulseResult;
+exports.selfProductSign = selfProductSign;
+exports.pulseDetect = pulseDetect;
+//} DEV

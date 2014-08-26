@@ -2,28 +2,16 @@ var assert = require('assert'),
     rimraf = require('rimraf'),
     path = require('path'),
     fs = require('fs'),
-    struct = require('../src/lib/struct.js');
+    struct = require('../src/lib/struct.js'),
+    prepare = require('./prepare.js');
 
 describe('struct', function(){
-  var fileDir = struct.fileDir;
-  var prd1 = path.join(fileDir, 'prd1');
-  var prd2 = path.join(fileDir, 'prd2');
-  var now = new Date();
-
   before(function(){
-    fs.mkdirSync(prd1);
-    fs.mkdirSync(path.join(prd1,now.getTime()+'_version4_' + now.getTime()));
-    fs.mkdirSync(path.join(prd1,(now.getTime()-1000)+'_version3_' + now.getTime()));
-    fs.mkdirSync(path.join(prd1,(now.getTime()-2000)+'_version2_' + now.getTime()));
-    fs.mkdirSync(path.join(prd1,(now.getTime()-3000)+'_version1_' + now.getTime()));
-    fs.mkdirSync(prd2);
-    fs.mkdirSync(path.join(prd2,(now.getTime()-3000)+'_versiona_' + now.getTime()));
-    fs.mkdirSync(path.join(prd2,(now.getTime()-5000)+'_versionb_' + now.getTime()));
+    prepare.testProducts.create();
   });
 
   after(function(){
-    rimraf.sync(prd1);
-    rimraf.sync(prd2);
+    //prepare.testProducts.destory();
   });
 
   it('should return the correct products structure and latest version number of each product', 
@@ -33,8 +21,10 @@ describe('struct', function(){
         throw err;
       }
       assert.equal(data.__self>=0, true);
-      assert.equal(data.prd1==now.getTime(), true);
-      assert.equal(data.prd2==now.getTime()-3000, true);
+      for(var i=0;i<prepare.testProducts.length;i++){
+        var product = prepare.testProducts[i];
+        assert(data[product.name]==product.latestVersion()); 
+      }
       done();
     });
   });
@@ -45,25 +35,29 @@ describe('struct', function(){
       if (err){
          throw err;
       }
-      var srcProductSign = {
-        prd1:now.getTime()+2000,
-        prd2:now.getTime()-4000,
-      };
+      var srcProductSign = {};
+      srcProductSign[prepare.testProducts[0].name] = 
+        prepare.testProducts[0].latestVersion() + 2000;
+      srcProductSign[prepare.testProducts[1].name] = 
+        prepare.testProducts[1].latestVersion() - 1000;
       var mergeResult = struct.mergeProductSign(data, srcProductSign);
-      assert.equal(mergeResult.prd2===undefined, true);
       assert.equal(mergeResult.__self===undefined, true);
-      assert.equal(mergeResult.prd1.selfstamp===now.getTime(), true);
-      assert.equal(mergeResult.prd1.srcstamp===now.getTime()+2000, true);
+      assert(mergeResult[prepare.testProducts[1].name]===undefined);
+      assert(mergeResult[prepare.testProducts[0].name].selfstamp===
+        prepare.testProducts[0].latestVersion());
+      assert(mergeResult[prepare.testProducts[0].name].srcstamp===
+        prepare.testProducts[0].latestVersion() + 2000);
       done();
     });
   });
 
   it('shoud return correct product versions range', function(){
-    var range = struct
-      .getProductVersionsRange('prd1', now.getTime()-2000, now.getTime());
-    assert.equal(range['prd1_'+(now.getTime()-1000)].path
-      .indexOf('version3') > -1, true);
-    assert.equal(range['prd1_'+now.getTime()].path
-      .indexOf('version4') > -1, true);
+    var prd = prepare.testProducts[0];
+    var range = struct.getProductVersionsRange(
+      prd.name, prd.versions.version2, prd.versions.version4);
+    assert(range[prd.name + '_' + prd.versions.version3].path
+      .indexOf('version3') > -1);
+    assert(range[prd.name + '_' + prd.versions.version4].path
+      .indexOf('version4') > -1);
   });
 });

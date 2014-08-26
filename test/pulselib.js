@@ -57,4 +57,9 @@ describe('pulselib', function(){
       done();
     });
   });
+
+  it('should detect neighbor pulse and get the right pulse result',
+  function(done){
+      
+  });
 });
