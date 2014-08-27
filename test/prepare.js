@@ -5,45 +5,34 @@ var fs = require('fs'),
 
 var time = (new Date()).getTime();
 
-function getLatestVersion(){
-  var reuslt = 0;
-  for(var version in Object.keys(this.versions)){
-    if (this.versions[version] > result){
-      result = this.versions[version];
+exports.testProduct = {
+  products:[{
+    name: 'test_prd1',
+    versions:{
+      version1:time-3000,
+      version2:time-2000,
+      version3:time-1000,
+      version4:time
     }
-  }
-  return result;
-}
-
-var testPrd1 = {
-  name: 'test_prd1',
-  path: pathlib.join(struct.fileDir, 'test_prd1'),
-  versions:{
-    version1:time-3000,
-    version2:time-2000,
-    version3:time-1000,
-    version4:time
-  },
-  latestVersion: getLatestVersion
-};
-
-var testPrd2 = {
-  name: 'test_prd2',
-  path: pathlib.join(struct.fileDir, 'test_prd2'),
-  versions:{
-    versiona:time-3000,
-    versionb:time-5000
-  },
-  latestVersion: getLatestVersion
-};
-
-exports.testProducts = {
-  products:[testPrd1, testPrd2],
-  create: function(time){
+  },{
+    name: 'test_prd2',
+    versions:{
+      versiona:time-3000,
+      versionb:time-5000
+    }
+  }],
+  create: function(){
     for(var i=0;i<this.products.length;i++){
       var prd = this.products[i];
+      prd.path = pathlib.join(struct.fileDir, prd.name);
       fs.mkdirSync(prd.path);
-      for(var version in Object.keys(prd.versions)){
+      var versions = Object.keys(prd.versions);
+      prd.latestVersion = 0;
+      for (var j=0;j<versions.length;j++){
+        var version = versions[j];
+        if (prd.versions[version] > prd.latestVersion){
+          prd.latestVersion = prd.versions[version];
+        }
         fs.mkdirSync(pathlib.join(prd.path, 
           prd.versions[version] + '_' + version + '_' + time));
       }
@@ -51,7 +40,9 @@ exports.testProducts = {
   },
   destory: function(){
     for(var i=0;i<this.products.length;i++){
-      rimraf.sync(this.products[i].path);
+      if (typeof this.products[i].path=='string'){
+        rimraf.sync(this.products[i].path);
+      }
     }
   }
 };

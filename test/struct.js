@@ -6,12 +6,14 @@ var assert = require('assert'),
     prepare = require('./prepare.js');
 
 describe('struct', function(){
+  var products = prepare.testProduct.products;
+
   before(function(){
-    prepare.testProducts.create();
+    prepare.testProduct.create();
   });
 
   after(function(){
-    //prepare.testProducts.destory();
+    prepare.testProduct.destory();
   });
 
   it('should return the correct products structure and latest version number of each product', 
@@ -21,9 +23,9 @@ describe('struct', function(){
         throw err;
       }
       assert.equal(data.__self>=0, true);
-      for(var i=0;i<prepare.testProducts.length;i++){
-        var product = prepare.testProducts[i];
-        assert(data[product.name]==product.latestVersion()); 
+      for(var i=0;i<products.length;i++){
+        var product = products[i];
+        assert(data[product.name]==product.latestVersion); 
       }
       done();
     });
@@ -33,26 +35,24 @@ describe('struct', function(){
   function(done){
     struct.getProductsSign(function(err, data){
       if (err){
-         throw err;
+        throw err;
       }
       var srcProductSign = {};
-      srcProductSign[prepare.testProducts[0].name] = 
-        prepare.testProducts[0].latestVersion() + 2000;
-      srcProductSign[prepare.testProducts[1].name] = 
-        prepare.testProducts[1].latestVersion() - 1000;
+      srcProductSign[products[0].name] = products[0].latestVersion + 2000;
+      srcProductSign[products[1].name] = products[1].latestVersion - 1000;
       var mergeResult = struct.mergeProductSign(data, srcProductSign);
       assert.equal(mergeResult.__self===undefined, true);
-      assert(mergeResult[prepare.testProducts[1].name]===undefined);
-      assert(mergeResult[prepare.testProducts[0].name].selfstamp===
-        prepare.testProducts[0].latestVersion());
-      assert(mergeResult[prepare.testProducts[0].name].srcstamp===
-        prepare.testProducts[0].latestVersion() + 2000);
+      assert(mergeResult[products[1].name]===undefined);
+      assert(mergeResult[products[0].name].selfstamp===
+        products[0].latestVersion);
+      assert(mergeResult[products[0].name].srcstamp===
+        products[0].latestVersion + 2000);
       done();
     });
   });
 
   it('shoud return correct product versions range', function(){
-    var prd = prepare.testProducts[0];
+    var prd = products[0];
     var range = struct.getProductVersionsRange(
       prd.name, prd.versions.version2, prd.versions.version4);
     assert(range[prd.name + '_' + prd.versions.version3].path
