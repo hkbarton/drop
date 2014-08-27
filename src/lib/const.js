@@ -5,7 +5,10 @@ var _const = {
   syncUrl: '/sync/:prd/:from/:to',
   dropSignature: '_drop_distribute_deploy_system_',
   errCode: {
-    fileNotFound: 'ENOENT'
+    fileNotFound: 'ENOENT',
+    fileAlreadyExist: 'EEXIST',
+    accessDeny: 'EACCES',
+    addressInUse: 'EADDRINUSE'
   }
 };
 

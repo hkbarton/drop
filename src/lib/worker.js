@@ -1,6 +1,5 @@
 var http = require('client-http'),
     fs = require('fs'),
-    zip = require('adm-zip'),
     cst = require('./const'),
     struct = require('./struct'),
     config = require('./config');

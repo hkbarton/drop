@@ -26,7 +26,7 @@ var _config = {
 
 var _range_level = ['trace','debug','info','warn','error','fatal'];
 var _range_rotate = ['1d','1w','1m','1y'];
-var _regex_path = /^[\w\d\.\\\/\_\-\&]+$/;
+var _regex_path = /^[\w\d\.\\\/\_\-\&\:]+$/;
 var _regex_ip = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 var _regex_iprange = /^(\d{1,3}|\*)\.(\d{1,3}|\*)\.(\d{1,3}|\*)\.(\d{1,3}|\*)$/;
 

@@ -3,9 +3,18 @@ var assert = require('assert'),
     pulse = require('../src/lib/pulselib.js'),
     struct = require('../src/lib/struct.js'),
     util = require('../src/lib/util.js'),
-    config = require('../src/lib/config.js');
+    config = require('../src/lib/config.js'),
+    prepare = require('./prepare.js');
 
 describe('pulselib', function(){
+  before(function(done){
+    prepare.testProduct.create();
+  });
+
+  after(function(){
+    prepare.testProduct.destory();
+  });
+
   it('should get right IP used for neighbor scan', function(){
     var ips = util.getInternalIPv4s();
     if (ips.length > 0){
