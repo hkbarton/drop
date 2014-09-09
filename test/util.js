@@ -2,7 +2,6 @@ var assert = require('assert'),
     fs = require('fs'),
     path = require('path'),
     rimraf = require('rimraf'),
-    http = require('client-http'),
     util = require('../src/lib/util');
 
 describe('util', function(){

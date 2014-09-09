@@ -9,6 +9,7 @@ var assert = require('assert'),
 describe('pulselib', function(){
   before(function(done){
     prepare.testProduct.create();
+    done();
   });
 
   after(function(){
@@ -69,6 +70,6 @@ describe('pulselib', function(){
 
   it('should detect neighbor pulse and get the right pulse result',
   function(done){
-      
+    done();    
   });
 });

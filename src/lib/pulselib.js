@@ -1,4 +1,4 @@
-var http = require('client-http'),
+var request = require('request'),
     fs = require('fs'),
     util = require('./util'),
     cst = require('./const'),
@@ -67,11 +67,10 @@ var neighborTable = {
   }
 };
 
-http.setTimeout(config.pulseTimeout);
-
 function pulseDetect(ip, cb){
-  http.get('http://' + ip + ':' + config.port + cst.pulseUrl, 
-  function(data, err){
+  request.defaults({timeout:config.pulseTimeout}).
+  get('http://' + ip + ':' + config.port + cst.pulseUrl, 
+  function(err, res, data){
     if (err){
       neighborTable.remove(ip); // remove broke neighbor
     }else{
