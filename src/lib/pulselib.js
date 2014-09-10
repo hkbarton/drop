@@ -12,7 +12,7 @@ var _messageType = {
 
 var upScanIP, downScanIP;
 var pulseScanCount = 0;
-var selfProductSign;
+var selfProductSign = {};
 //  Pulse Compare Result Data Structure
 //  {
 //    productName: {
@@ -90,7 +90,7 @@ function pulseDetect(ip, cb){
         }
         // deal with return product structure
         var mergeResult = struct.mergeProductSign(selfProductSign, data.data);
-        if (mergeResult && mergeResult.length>0){
+        if (mergeResult && Object.keys(mergeResult).length>0){
           for (var prdName in mergeResult){
             var pulsePrd = pulseResult[prdName];
             if (pulsePrd){

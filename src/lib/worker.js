@@ -1,4 +1,4 @@
-var http = require('client-http'),
+var request = require('request'),
     fs = require('fs'),
     cst = require('./const'),
     struct = require('./struct'),
@@ -59,7 +59,8 @@ function doWork(){
 
 function sync(param){
   if (param){
-    var handleSync = function(data, err){
+    var handleSync = function(err, res, data){
+      // TODO
     };
     for(var key in param){
       var syncEndpoint = 'http://' + param[key].src + ':' + config.port + 
@@ -67,7 +68,7 @@ function sync(param){
         .replace(':prd', key)
         .replace(':from', param[key].selfstamp)
         .replace(':to', param[key].srcstamp);
-      http.get(syncEndpoint, handleSync); // TODO
+      request.get(syncEndpoint, handleSync); // TODO
     }
   }
 }

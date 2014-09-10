@@ -4,12 +4,15 @@ var assert = require('assert'),
     struct = require('../src/lib/struct.js'),
     util = require('../src/lib/util.js'),
     config = require('../src/lib/config.js'),
+    testServer = require('../src/lib/socket.js').server,
     prepare = require('./prepare.js');
 
 describe('pulselib', function(){
   before(function(done){
     prepare.testProduct.create();
-    done();
+    testServer.listen(config.port, function(){
+      done();
+    });
   });
 
   after(function(){
@@ -70,6 +73,18 @@ describe('pulselib', function(){
 
   it('should detect neighbor pulse and get the right pulse result',
   function(done){
-    done();    
+    var fakeProduct = prepare.testProduct.products[0];
+    pulse.selfProductSign[fakeProduct.name] = fakeProduct.versions.version2;
+    pulse.pulseDetect('localhost', function(result){
+      // should save the success pulse dest ip
+      assert(pulse.neighborTable.get().indexOf('localhost') > -1);
+      // should successful generate pulse result
+      assert(result[fakeProduct.name] instanceof Object);
+      assert(result[fakeProduct.name].selfstamp == 
+        fakeProduct.versions.version2);
+      assert(result[fakeProduct.name].srcstamp == fakeProduct.latestVersion);
+      assert(result[fakeProduct.name].src == 'localhost');
+      done();
+    });
   });
 });
