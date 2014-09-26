@@ -2,7 +2,8 @@ var request = require('request'),
     fs = require('fs'),
     cst = require('./const'),
     struct = require('./struct'),
-    config = require('./config');
+    config = require('./config'),
+    log = require('./log');
 
 /* --- work message structure
 {
@@ -73,21 +74,46 @@ function sync(param){
   }
 }
 
+var packingFileQueue = [];
+var packingFileCallbackQueue = [];
+
 function serveTaskFile(params, callback){
-  if (req.params && req.params.prd && 
-    req.params.from && req.params.to){
+  if (params && params.prd && params.from && params.to){
     var taskRange = struct.getProductVersionsRange(req.params.prd,
       req.params.from, req.params.to);
-    var serveFile = function(){
+    var fileCount = Object.keys(taskRange).length;
+    var serveFile = function(err, path){
+      // TODO
+    };
+    var getPackFinishCallback = function(key){
+      return function(err){
+        var packIndex = packingFileQueue.indexOf(key);
+        var filePath = path.join(struct.tempDir, key, '.tar.gz');
+        if (err){ // pack file success
+          log.error(err, 'Pack files fail when serve ' + key);
+        }
+        for (var i=0;i<packingFileCallbackQueue[packIndex].length;i++){
+          packingFileCallbackQueue[packIndex][i](err, filePath);
+        }
+        packingFileQueue.splice(packIndex, 1);
+        packingFileCallbackQueue.splice(packIndex, 1);
+      };
     };
     for(var key in taskRange){
       var filePath = path.join(struct.tempDir, key, '.tar.gz');
       if (fs.existsSync(filePath)){
-        // serve file
-
+        serveFile(undefined, filePath);
       }else{
-        // zip file
-        util.packFiles(taskRange[key], filePath, serveFile);
+        // check if files are undering packing process
+        var packIndex = packingFileQueue.indexOf(key);
+        if (packIndex > -1){
+          packingFileCallbackQueue[packIndex].push(serveFile); 
+        }else{
+          packingFileQueue.push(key);
+          packingFileCallbackQueue.push([serveFile]);
+          util.packFiles(taskRange[key].path, 
+            filePath, packFinishCallback(key));
+        }
       }
     }
   }

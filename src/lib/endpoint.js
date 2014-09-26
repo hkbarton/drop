@@ -4,7 +4,8 @@ var fs = require('fs'),
     cst = require('./const'),
     subproc = require('./subproc'),
     work = require('./worker'),
-    util = require('./util');
+    util = require('./util'),
+    log = require('./log.js');
 
 function pulse(req, res){
   // update manager node information if need
@@ -19,7 +20,7 @@ function pulse(req, res){
   // return pulse information
   struct.getProductsSign(function(err, sign){
     if (err){
-      // TODO log and report to manger node this node have some issue
+      log.error(err, 'Pulse response failed.'); 
       res.send(500, util.signResponse(err));
       return;
     }
