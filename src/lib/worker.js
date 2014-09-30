@@ -15,48 +15,18 @@ var request = require('request'),
 */
 
 var _type = {
-  sync:0,
-  serveTaskFile:1
+  sync:0
 };
 
-var workQueue = [];
-var busyFlag = false;
-
-function queueWork(work){
-  if (work && work.type){
-    // sign work
-    var workDataStr = work.data ? JSON.stringify(work.data) : '';
-    work.sign = String(work.type) + workDataStr.hash();
-    // duplicate work filter
-    for (var i in workQueue){
-      if (workQueue[i].sign==work.sign){
-        return;
-      }
-    }
-    // push work and do work if possible
-    workQueue.push(work);
-    doWork();
+function doWorkByMsg(workMsg){
+  switch(workMsg.type){
+    case _type.sync:
+    sync(workMsg.data);
+    break;
   }
 }
 
-function doWork(){
-  if (busyFlag){
-    return;
-  }
-  busyFlag = true;
-  while(workQueue.length > 0){
-    var workMsg = workQueue.pop();
-    switch(workMsg.type){
-      case _type.sync:
-      sync(workMsg.data);
-      break;
-      case _type.serveTaskFile:
-      serveTaskFile(workMsg.data, workMsg.callback);
-      break;
-    }
-  }
-  busyFlag = false;
-}
+/* WORK: sync product deploy task files from other node */
 
 function sync(param){
   if (param){
@@ -74,50 +44,77 @@ function sync(param){
   }
 }
 
-var packingFileQueue = [];
-var packingFileCallbackQueue = [];
+/* WORK: pack product deploy task files for serving */
 
-function serveTaskFile(params, callback){
-  if (params && params.prd && params.from && params.to){
-    var taskRange = struct.getProductVersionsRange(req.params.prd,
-      req.params.from, req.params.to);
-    var fileCount = Object.keys(taskRange).length;
-    var serveFile = function(err, path){
-      // TODO
-    };
-    var getPackFinishCallback = function(key){
-      return function(err){
-        var packIndex = packingFileQueue.indexOf(key);
-        var filePath = path.join(struct.tempDir, key, '.tar.gz');
-        if (err){ // pack file success
-          log.error(err, 'Pack files fail when serve ' + key);
-        }
-        for (var i=0;i<packingFileCallbackQueue[packIndex].length;i++){
-          packingFileCallbackQueue[packIndex][i](err, filePath);
-        }
-        packingFileQueue.splice(packIndex, 1);
-        packingFileCallbackQueue.splice(packIndex, 1);
-      };
-    };
-    for(var key in taskRange){
-      var filePath = path.join(struct.tempDir, key, '.tar.gz');
-      if (fs.existsSync(filePath)){
-        serveFile(undefined, filePath);
+var packingFileQueue = {};
+
+function _getPackFinishCallback(key, filePath){
+  return function(err){
+    var packResults = packingFileQueue[key];
+    if (err){ // pack file success
+      log.error(err, 'Pack files fail for ' + key);
+    }
+    delete packingFileQueue[key];
+    for (var i=0;i<packResults.length;i++){
+      packResults[i].filePaths.push({
+        key: key,
+        path: filePath,
+        err: err
+      });
+      _returnPackedVersionFilePaths(packResults[i]);
+    }
+  };
+}
+
+function _returnPackedVersionFilePaths(packResult){
+  if (packResult.filePaths.length == packResult.totalCount){
+    var resultPaths = [];
+    var resultError = {};
+    for (var i=0;i<packResult.filePaths.length;i++){
+      var filePath = packResult.filePaths[i];
+      if (filePath.err){
+        resultError[filePath.key] = filePath.err;
       }else{
-        // check if files are undering packing process
-        var packIndex = packingFileQueue.indexOf(key);
-        if (packIndex > -1){
-          packingFileCallbackQueue[packIndex].push(serveFile); 
-        }else{
-          packingFileQueue.push(key);
-          packingFileCallbackQueue.push([serveFile]);
-          util.packFiles(taskRange[key].path, 
-            filePath, packFinishCallback(key));
-        }
+        resultPaths.push(filePath.path);
       }
+    }
+    if (Object.keys(resultError).length>0){
+      packResult.callback(resultError, null);
+    }else{
+      packResult.callback(null, resultPaths.sort()); 
     }
   }
 }
 
+function getPackedVersionFilePaths(versionInfo, callback){
+  if (versionInfo && versionInfo.prd && versionInfo.from && versionInfo.to){
+    var versionRange = struct.getProductVersionsRange(versionInfo.prd,
+      versionInfo.from, versionInfo.to);
+    var totalFileCount = Object.keys(versionRange).length;
+    var packResult = {
+      totalCount: totalFileCount,
+      filePaths:[],
+      callback: callback
+    };
+    for(var key in versionRange){
+      var filePath = path.join(struct.tempDir, key, '.tar.gz');
+      if (fs.existsSync(filePath)){
+        packResult.filePaths.push({key: key, path: filePath});
+      }else{
+        // check if files are undering packing process
+        if (packingFileQueue[key] instanceof Array){ // file is packing
+          packingFileQueue[key].push(packResult);
+        }else{
+          packingFileQueue[key] = [packResult];
+          util.packFiles(taskRange[key].path, filePath, 
+            _getPackFinishCallback(key, filePath));
+        }
+      }
+    }
+    _returnPackedVersionFilePaths(packResult);
+  }
+}
+
 exports.type = _type;
-exports.queueWork = queueWork;
+exports.doWorkByMsg = doWorkByMsg;
+exports.getPackedVersionFilePaths = getPackedVersionFilePaths;

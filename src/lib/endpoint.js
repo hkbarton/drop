@@ -31,15 +31,11 @@ function pulse(req, res){
 function sync(req, res){
   if (req.params && req.params.prd && 
     req.params.from && req.params.to){
-    var retrieveTaskFile = function(){
+    work.getPackedVersionFilePaths(req.params, 
+    function(err, filePaths){
+      // response file stream
       // TODO
-    };
-    var work = {
-      type: work.type.serveTaskFile,
-      data: req.params,
-      callback: retrieveTaskFile
-    };
-    work.queueWork(work);
+    });
   }
 }
 

@@ -15,7 +15,7 @@ function startPulseProcess(){
   // handle message from pulse process to main process
   _childProcess.pulseProcess.on('message', function(m){
     // this code run in main process
-    worker.queueWork(m);
+    worker.doWorkByMsg(m);
   });
 }
 
