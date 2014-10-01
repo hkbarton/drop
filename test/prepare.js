@@ -21,7 +21,7 @@ exports.testProduct = {
       versionb:time-5000
     }
   }],
-  create: function(){
+  create: function(fillFakeFile){
     for(var i=0;i<this.products.length;i++){
       var prd = this.products[i];
       prd.path = pathlib.join(struct.fileDir, prd.name);
@@ -33,8 +33,14 @@ exports.testProduct = {
         if (prd.versions[version] > prd.latestVersion){
           prd.latestVersion = prd.versions[version];
         }
-        fs.mkdirSync(pathlib.join(prd.path, 
-          prd.versions[version] + '_' + version + '_' + time));
+        var versionDir = pathlib.join(prd.path,
+          prd.versions[version] + '_' + version + '_' + time);
+        fs.mkdirSync(versionDir);
+        if (fillFakeFile){
+          fs.writeFileSync(pathlib.join(versionDir, 'fake.txt'),
+            'This is a fake file in order to fill the version folder',
+            {encoding:'utf8'});
+        }
       }
     }
   },

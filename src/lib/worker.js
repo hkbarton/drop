@@ -1,9 +1,11 @@
 var request = require('request'),
     fs = require('fs'),
+    pathlib = require('path'),
     cst = require('./const'),
     struct = require('./struct'),
     config = require('./config'),
-    log = require('./log');
+    log = require('./log'),
+    util = require('./util.js');
 
 /* --- work message structure
 {
@@ -97,7 +99,7 @@ function getPackedVersionFilePaths(versionInfo, callback){
       callback: callback
     };
     for(var key in versionRange){
-      var filePath = path.join(struct.tempDir, key, '.tar.gz');
+      var filePath = pathlib.join(struct.tempDir, key + '.tar.gz');
       if (fs.existsSync(filePath)){
         packResult.filePaths.push({key: key, path: filePath});
       }else{
@@ -106,7 +108,7 @@ function getPackedVersionFilePaths(versionInfo, callback){
           packingFileQueue[key].push(packResult);
         }else{
           packingFileQueue[key] = [packResult];
-          util.packFiles(taskRange[key].path, filePath, 
+          util.packFiles(versionRange[key].path, filePath, 
             _getPackFinishCallback(key, filePath));
         }
       }
