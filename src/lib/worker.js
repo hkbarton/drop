@@ -71,6 +71,7 @@ function _getPackFinishCallback(key, filePath){
 function _returnPackedVersionFilePaths(packResult){
   if (packResult.filePaths.length == packResult.totalCount){
     var resultPaths = [];
+    var resultKeys = [];
     var resultError = {};
     for (var i=0;i<packResult.filePaths.length;i++){
       var filePath = packResult.filePaths[i];
@@ -78,12 +79,13 @@ function _returnPackedVersionFilePaths(packResult){
         resultError[filePath.key] = filePath.err;
       }else{
         resultPaths.push(filePath.path);
+        resultKeys.push(filePath.key);
       }
     }
     if (Object.keys(resultError).length>0){
       packResult.callback(resultError, null);
     }else{
-      packResult.callback(null, resultPaths.sort()); 
+      packResult.callback(null, resultPaths.sort(), resultKeys.sort()); 
     }
   }
 }

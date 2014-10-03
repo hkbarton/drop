@@ -1,5 +1,4 @@
-var fs = require('fs'),
-    path = require('path'),
+var tar = require('tar'),
     struct = require('./struct'),
     cst = require('./const'),
     subproc = require('./subproc'),
@@ -32,8 +31,16 @@ function sync(req, res){
   if (req.params && req.params.prd && 
     req.params.from && req.params.to){
     work.getPackedVersionFilePaths(req.params, 
-    function(err, filePaths){
+    function(err, filePaths, keys){
       // response file stream
+      if (err){
+        res.status(500).json(err);
+        return;
+      }
+      var serveFileName = keys[0] + '_';
+      var lastKeyParts = keys[keys.length-1].split('_');
+      serveFileName += lastKeyParts[lastKeyParts.length-1];
+      res.attachment(serveFileName + '.tar');
       // TODO
     });
   }
