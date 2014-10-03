@@ -1,10 +1,16 @@
-var tar = require('tar'),
+var fs = require('fs'),
+    pathlib = require('path'),
+    tar = require('tar-stream'),
+    async = require('async'),
+    fstream = require('fstream'),
     struct = require('./struct'),
     cst = require('./const'),
     subproc = require('./subproc'),
     work = require('./worker'),
     util = require('./util'),
     log = require('./log.js');
+
+/* Response pulse request */
 
 function pulse(req, res){
   // update manager node information if need
@@ -27,12 +33,45 @@ function pulse(req, res){
   });
 }
 
+/* Response sync files request */
+
+function getAddTarEntryFun(filePath, pack){
+  return function(callback){
+    var fileName = pathlib.basename(filePath);
+    var err = {};
+    var fileSize;
+    try{
+      fileSize = fs.statSync(filePath).size;
+    }catch(e){
+      log.error(e, 'Stat file ' + fileName + ' failed when serve it.');
+      err[fileName] = e;
+      callback(err, null);
+      return;
+    }
+    var streamErrHandle = function(serr){
+      log.error(serr, 'Pack file ' + fileName + ' failed when serve it.');
+      err[fileName] = serr;
+      callback(err, null);
+    };
+    var entry = pack.entry({name: fileName, size: fileSize});
+    var fileReader = fstream.Reader(filePath);
+    entry.on('error', streamErrHandle);
+    fileReader.on('error', streamErrHandle);
+    fileReader.on('ready', function(){
+      fileReader.pipe(entry);
+      fileReader.on('end', function(){
+        entry.end();
+        callback();
+      });
+    });
+  };
+}
+
 function sync(req, res){
   if (req.params && req.params.prd && 
     req.params.from && req.params.to){
     work.getPackedVersionFilePaths(req.params, 
     function(err, filePaths, keys){
-      // response file stream
       if (err){
         res.status(500).json(err);
         return;
@@ -41,7 +80,19 @@ function sync(req, res){
       var lastKeyParts = keys[keys.length-1].split('_');
       serveFileName += lastKeyParts[lastKeyParts.length-1];
       res.attachment(serveFileName + '.tar');
-      // TODO
+      var serveTarPack = tar.pack();
+      var tarFilesSeries = [];
+      for (var i=0;i<filePaths.length;i++){
+        tarFilesSeries.push(getAddTarEntryFun(filePaths[i], serveTarPack));
+      }
+      async.series(tarFilesSeries, function(pack_err){
+        if (err){
+          res.status(500).json(pack_err);
+          return;
+        }
+        serveTarPack.finalize();
+        serveTarPack.pipe(res);
+      });
     });
   }
 }
