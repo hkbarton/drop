@@ -8,14 +8,17 @@ var assert = require('assert'),
     prepare = require('./prepare.js');
 
 describe('pulselib', function(){
+  var tempWebServer;
+
   before(function(done){
     prepare.testProduct.create();
-    testServer.listen(config.port, function(){
+    tempWebServer = testServer.listen(config.port, function(){
       done();
     });
   });
 
   after(function(){
+    tempWebServer.close();
     prepare.testProduct.destory();
   });
 

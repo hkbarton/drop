@@ -3,20 +3,24 @@ var assert = require('assert'),
     tar = require('tar-stream'),
     pathlib = require('path'),
     fs = require('fs'),
+    async = require('async'),
     prepare = require('./prepare.js'),
     struct = require('../src/lib/struct.js'),
     config = require('../src/lib/config.js'),
     testServer = require('../src/lib/socket.js').server;
 
 describe('endpoint', function(){
+  var tempWebServer;
+
   before(function(done){
     prepare.testProduct.create(true);
-    testServer.listen(config.port, function(){
+    tempWebServer = testServer.listen(config.port, function(){
       done();
     });
   });
 
   after(function(){
+    tempWebServer.close();
     prepare.testProduct.destory();
   });
 
@@ -39,9 +43,14 @@ describe('endpoint', function(){
     syncUrl += '/sync/' + prdName + '/' + 
       fromVersion + '/' + toVersion;
     var unpackStream = tar.extract();
+    var syncedFileWriterParallel = []; 
     unpackStream.on('entry', function(header, stream, callback){
-      stream.pipe(fs.createWriteStream(pathlib.join(__dirname, 
-        pathlib.basename(header.name))));
+      var output = fs.createWriteStream(pathlib.join(__dirname, 
+        pathlib.basename(header.name)));
+      syncedFileWriterParallel.push(function(cb){
+        output.on('finish', cb);
+      });
+      stream.pipe(output);
       stream.on('error', function(err){
         throw err;
       });
@@ -50,17 +59,17 @@ describe('endpoint', function(){
       });
     });
     unpackStream.on('finish', function(){
-      for (var i=0;i<originSeveFilePath.length;i++){
-        assert(fs.existsSync(originSeveFilePath[i]));
-        assert(fs.existsSync(syncedFilePath[i]));
-        //console.log(originSeveFilePath[i]);
-        //console.log(syncedFilePath[i]);
-        //console.log(fs.statSync(originSeveFilePath[i]).size);
-        //console.log(fs.statSync(syncedFilePath[i]).size);
-        //assert(fs.statSync(originSeveFilePath[i]).size==
-          //fs.statSync(syncedFilePath[i]).size);
-      }
-      done();
+      async.parallel(syncedFileWriterParallel, function(){
+        for (var i=0;i<originSeveFilePath.length;i++){
+          assert(fs.existsSync(originSeveFilePath[i]));
+          assert(fs.existsSync(syncedFilePath[i]));
+          assert(fs.statSync(originSeveFilePath[i]).size==
+            fs.statSync(syncedFilePath[i]).size);
+          fs.unlinkSync(originSeveFilePath[i]);
+          fs.unlinkSync(syncedFilePath[i]);
+        }
+        done();
+      });
     });
     var rq = request(syncUrl);
     rq.on('response', function(resp){
