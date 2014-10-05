@@ -1,6 +1,8 @@
 var request = require('request'),
     fs = require('fs'),
     pathlib = require('path'),
+    tar = require('tar-stream'),
+    async = require('async'),
     cst = require('./const'),
     struct = require('./struct'),
     config = require('./config'),
@@ -30,18 +32,77 @@ function doWorkByMsg(workMsg){
 
 /* WORK: sync product deploy task files from other node */
 
+var syncingFilesQueue = [];
+
+function removeFromSyncingFilesQueue(key){
+  var index = syncingFilesQueue.indexOf(key);
+  if (index > -1){
+    syncingFilesQueue.splice(index, 1);
+  }
+}
+
+function onSyncResponse(resp){
+  var originalUrl = resp.request.href;
+  if (resp.statusCode!=200){
+    removeFromSyncingFilesQueue(originalUrl);
+    var err, errData = '';
+    resp.on('data', function(chunk){
+      errData += chunk.toString('utf8');
+    });
+    resp.on('end', function(){
+      try{
+        err = JSON.parse(errData);
+        errData = '';
+      }catch(e){}
+      log.error(err, 'Sync files ' + syncEndpoint + ' failed because ' + 
+        String(resp.statusCode) + ' ' + errData); 
+    });
+    return;
+  }
+  var unpackStream = tar.extract();
+  var unpackFinishParallel = [];
+  unpackStream.on('entry', function(header, stream, callback){
+    var fileName = pathlib.basename(header.name);
+    var filePath = pathlib.join(struct.tempDir, fileName);
+    var output = fs.createWriteStream(filePath);
+    unpackFinishParallel.push(function(cb){
+      output.on('finish', function(){cb(null, filePath);});
+    });
+    stream.pipe(output);
+    var streamErrHandle = function(err){
+      log.error(err, 'Sync file ' + originalUrl + 
+        ' failed when unpack synced files'); 
+      fs.unlink(filePath);
+    };
+    stream.on('error', streamErrHandle);
+    outpu.on('error', streamErrHandle);
+    stream.on('end', function(){callback();});
+  });
+  unpackStream.on('finish', function(){
+    aync.parallel(unpackFinishParallel, function(err, results){
+      // TODO continue unpack tar.gz file in tempDir to fileDir 
+      // after unpack to fileDir, need remove task flag from syncingFilesQueue
+    });
+  });
+}
+
 function sync(param){
   if (param){
-    var handleSync = function(err, res, data){
-      // TODO
-    };
+    // for each product need sync from other nodes
     for(var key in param){
       var syncEndpoint = 'http://' + param[key].src + ':' + config.port + 
         cst.syncUrl
         .replace(':prd', key)
         .replace(':from', param[key].selfstamp)
         .replace(':to', param[key].srcstamp);
-      request.get(syncEndpoint, handleSync); // TODO
+      if (syncingFilesQueue.indexOf(syncEndpoint) > -1){
+        continue;
+      }
+      syncingFilesQueue.push(syncEndpoint);
+      // TODO need check tempDir to see if file already synced but
+      // not unpack to fileDir yet
+      var syncRequest = request.get(syncEndpoint);
+      syncRequest.on('response', onSyncResponse);
     }
   }
 }

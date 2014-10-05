@@ -76,7 +76,7 @@ describe('endpoint', function(){
       if (resp.statusCode!=200){
         throw 'Server return ' + resp.statusCode;
       }
-      rq.pipe(unpackStream);
+      resp.request.pipe(unpackStream);
     });
   });
 });

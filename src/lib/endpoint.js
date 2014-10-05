@@ -76,6 +76,10 @@ function sync(req, res){
         res.status(500).json(err);
         return;
       }
+      if (filePaths.length===0 || keys.length===0){
+        res.status(404).json({err:'no such version files found.'});
+        return;
+      }
       var serveFileName = keys[0] + '_';
       var lastKeyParts = keys[keys.length-1].split('_');
       serveFileName += lastKeyParts[lastKeyParts.length-1];
